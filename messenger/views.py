@@ -10,8 +10,8 @@ from chatbot.actions import *
 REQUEST_HANDLER = {
     'INITIAL_STATE': initial_state_request,
     'CREATE_NEW_TASK': create_new_task_request,
-    'TASK_IS_CREATED': task_is_created_request,
-    'WAITING_FOR_AGENT': waiting_for_agent_request,
+    'TASK_IS_CREATED': task_is_created_request
+    # 'WAITING_FOR_AGENT': waiting_for_agent_request
 }
 
 RESPONSE_HANDLER = {
