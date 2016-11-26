@@ -71,7 +71,7 @@ def waiting_for_agent(recipient_id, type=None):
                                         {
                                             "type": "postback",
                                             "title": "Cancel Task",
-                                            "payload": "USER_DEFINED_PAYLOAD"
+                                            "payload": "CANCEL_TASK"
                                         }
                             ]
                         }
@@ -203,3 +203,8 @@ def task_is_created(recipient_id, type=None):
 
 def task_is_created_request(recipient_id, text):
     update_task_amount(recipient_id, float(text))
+
+
+def waiting_for_agent_request(recipient_id, text):
+    if text.upper() == 'CANCEL_TASK':
+        cancel_task(recipient_id)
