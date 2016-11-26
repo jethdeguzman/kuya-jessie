@@ -31,7 +31,7 @@ def get_task(reference_number):
     return Task.objects.get(reference_number=reference_number)
 
 def update_task_amount(messenger_id, amount):
-    task = Task.objects.filter(messenger_id=messenger_id).last()
+    task = Task.objects.filter(owner=get_user(messenger_id)).last()
     update_task(task.reference_number, {'amount' : format_number(amount)})
     update_user(messenger_id, {'state' : 'WAITING_FOR_AGENT'})
 
