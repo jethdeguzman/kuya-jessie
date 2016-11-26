@@ -11,7 +11,9 @@ REQUEST_HANDLER = {
     'INITIAL_STATE': initial_state_request,
     'CREATE_NEW_TASK': create_new_task_request,
     'TASK_IS_CREATED': task_is_created_request,
-    'WAITING_FOR_AGENT': waiting_for_agent_request
+    'WAITING_FOR_AGENT': waiting_for_agent_request,
+    'START_AGENT': start_agent_request,
+    'TASK_ON_PROCESS': task_on_process_request
 }
 
 RESPONSE_HANDLER = {
@@ -32,13 +34,11 @@ URL = "https://graph.facebook.com/v2.6/me/messages?access_token={}".format(PAGE_
 
 def send_menu(recipient_id, state, type=None):
     try:
+        print('[{}] Executing response handler.'.format(state))
         data = RESPONSE_HANDLER[state](recipient_id, type)
         response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
     except KeyError as e:
         return Response(status=status.HTTP_200_OK)
-
-    print('==========')
-    print(response.json())
 
 
 class Callback(APIView):
@@ -61,7 +61,6 @@ class Callback(APIView):
             text = message['text']
             sender_id = messaging['sender']['id']
         except KeyError as e:
-            print('========')
             print('Received a postback request.')
             postback = messaging.get('postback')
             if postback is not None:
@@ -74,10 +73,6 @@ class Callback(APIView):
         user_state = user.state
         user_type = user.type
 
-        print('===========')
-        print(user.state)
-        print(user.type)
-        print(text)
 
         if text.upper() == 'HELP':
             send_menu(sender_id, state=user_state, type=user_type)
@@ -85,6 +80,8 @@ class Callback(APIView):
 
         REQUEST_HANDLER[user_state](sender_id, text)
         user = get_user(sender_id)
-        send_menu(sender_id, state=user.state, type=user.type)
+
+        if user_state != 'TASK_ON_PROCESS':
+            send_menu(sender_id, state=user.state, type=user.type)
 
         return Response(status=status.HTTP_200_OK)
