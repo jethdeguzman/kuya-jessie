@@ -42,6 +42,6 @@ def set_agent(messenger_id, reference_number):
     update_user(task.owner.messenger_id, {'recipient_id' : messenger_id, 'state' : 'TASK_ON_PROCESS'})
 
 def cancel_task(messenger_id):
-    task = Task.objects.filter(messenger_id=messenger_id).last()
+    task = Task.objects.filter(owner=get_user(messenger_id)).last()
     update_task(task.reference_number, {'state' : 'CANCELLED'})
     update_user(messenger_id, {'state' : 'INITIAL_STATE'})
