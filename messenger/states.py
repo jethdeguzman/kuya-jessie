@@ -1,5 +1,11 @@
 from chatbot.actions import *
 import requests
+import json
+
+PAGE_ACCESS_TOKEN = 'EAAZAVsVdErmoBAMxVEMZBoxZCBhikbWfZBe1d4AJGJWmwsGOZA1uoZAprUCyU4kaZAP5YVG0tVefuKwLvP8ToCZB59h1XrY2d0oiVSSDXku7mHuQkBgL5ZBCck57OUuOE55zUswP1nIhVQIH40OZC21sDpyLhosIdKLmzzIvHrUKggJQZDZD'
+HEADERS = {'Content-Type':'application/json'}
+URL = "https://graph.facebook.com/v2.6/me/messages?access_token={}".format(PAGE_ACCESS_TOKEN)
+
 
 def initial_state(recipient_id, type=None):
     return {"recipient": {
@@ -57,7 +63,57 @@ def start_agent(recipient_id, type=None):
             }
 
 
+def get_user_profile_preferences(recipient_id):
+    url = 'https://graph.facebook.com/v2.6/{0}?fields=first_name,last_name,profile_pic,locale,timezone,gender&access_token={1}'.format(recipient_id, PAGE_ACCESS_TOKEN)
+    response = requests.get(url=url)
+    return response.json()
+
+
+def last_available_task(recipient_id, task):
+    user_profile = get_user_profile_preferences(task.owner.messenger_id)
+
+    return {"recipient":{
+            "id": str(recipient_id)
+        },
+        "message":{
+            "attachment":{
+                        "type":"template",
+                        "payload":{
+                            "template_type":"generic",
+                            "elements":[
+                                        {
+                                            "title": task.description,
+                                            "item_url":"",
+                                            "image_url": user_profile.get('profile_pic'),
+                                            "subtitle": user_profile.get('first_name') + ' ' + user_profile.get('last_name'),
+                                            "buttons":[
+                                                        {
+                                                            "type": "postback",
+                                                            "title": "Accept for P{}".format(task.amount),
+                                                            "payload": "TASK_ON_PROCESS"
+                                                        }
+                                            ]
+                                        }
+                            ]
+                        }
+            }
+        }
+        }
+
+
+def agents_chat_blast():
+    agents = get_agents()
+
+    for agent in agents:
+        recipient_id = agent.messenger_id
+        task = get_available_tasks().last()
+        data = last_available_task(recipient_id, task)
+        response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+        print(response.json())
+
+
 def waiting_for_agent(recipient_id, type=None):
+    agents_chat_blast()
     return {"recipient": {
             "id": str(recipient_id)
             },
@@ -185,7 +241,7 @@ def initial_state_request(recipient_id, text):
     if text.upper() == 'CREATE_NEW_TASK':
         update_user(recipient_id, data={'state': 'CREATE_NEW_TASK'})
     elif text.upper() == 'BE_AN_AGENT':
-        update_user(recipient_id, data={'state': 'START_AGENT'})
+        update_user(recipient_id, data={'type': 'AGENT', 'state': 'START_AGENT'})
 
 
 def create_new_task_request(recipient_id, text):
