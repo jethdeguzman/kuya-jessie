@@ -17,6 +17,9 @@ def get_user(messenger_id):
 
     return user
 
+def get_agents():
+    return User.objects.filter(type='AGENT')
+
 def update_user(messenger_id, data):
     return User.objects.filter(messenger_id=messenger_id).update(**data)
 
@@ -29,6 +32,9 @@ def update_task(reference_number, data):
 
 def get_task(reference_number):
     return Task.objects.get(reference_number=reference_number)
+
+def get_available_tasks():
+    return Task.objects.filter(status='AVAILABLE')
 
 def update_task_amount(messenger_id, amount):
     task = Task.objects.filter(owner=get_user(messenger_id)).last()
