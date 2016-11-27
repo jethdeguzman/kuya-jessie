@@ -24,7 +24,8 @@ RESPONSE_HANDLER = {
     'WAITING_FOR_AGENT': waiting_for_agent,
     'TASK_SELECTED': task_selected,
     'INVALID_COMMAND': invalid_command,
-    'TASK_ON_PROCESS': task_on_process
+    'TASK_ON_PROCESS': task_on_process,
+    'WALLET': get_wallet_balance
 }
 
 VERIFY_TOKEN = 'kuyajessie'
@@ -76,6 +77,10 @@ class Callback(APIView):
 
         if text.upper() == 'HELP':
             send_menu(sender_id, state=user_state, type=user_type)
+            return Response(status=status.HTTP_200_OK)
+
+        if text.upper() == 'WALLET':
+            send_menu(sender_id, state='WALLET', type=user_type)
             return Response(status=status.HTTP_200_OK)
 
         REQUEST_HANDLER[user_state](sender_id, text)

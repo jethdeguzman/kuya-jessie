@@ -335,3 +335,15 @@ def task_on_process_request(recipient_id, text):
                 }
         response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
         print(response.json())
+
+
+def get_wallet_balance(recipient_id, type=None):
+    data = {"recipient":{
+                "id": recipient_id
+            },
+            "message":{
+                "text": "Your remaining balance is {}".format(get_account_balance(recipient_id))
+            }
+            }
+    response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+    print(response.json())
