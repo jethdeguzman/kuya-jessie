@@ -65,7 +65,8 @@ def done_task(messenger_id):
 
 def decline_task(messenger_id):
     task = Task.objects.filter(agent=get_user(messenger_id)).last()
-    update_user(messenger_id, {'state' : 'INITIAL_STATE'})
+    update_task(task.reference_number, {'status': 'AVAILABLE'})
+    update_user(messenger_id, {'type':'AGENT', 'state' : 'START_AGENT'})
     update_user(task.owner.messenger_id, {'state' : 'WAITING_FOR_AGENT'})
 
 def get_account_balance(messenger_id):

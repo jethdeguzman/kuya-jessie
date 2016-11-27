@@ -53,7 +53,7 @@ def start_agent(recipient_id, type=None):
                                         {
                                             "type": "postback",
                                             "title": "Logout",
-                                            "payload": "USER_DEFINED_PAYLOAD"
+                                            "payload": "LOGOUT"
                                         }
                             ]
                         }
@@ -278,6 +278,9 @@ def send_agent_is_available_notification(recipient_id, sender_id):
     print(response.json())
 
 def start_agent_request(recipient_id, text):
+    if text == 'LOGOUT':
+        update_user(recipient_id, data={'type':'CUSTOMER', 'state':'INITIAL_STATE'})
+
     try:
         command = json.loads(text)
 
@@ -291,27 +294,36 @@ def start_agent_request(recipient_id, text):
 def task_on_process_request(recipient_id, text):
     sender = User.objects.filter(messenger_id=recipient_id).first()
     recipient = sender.recipient_id
+    contact_group = [recipient_id, recipient]
 
     if text == 'DONE_TASK':
-        data = {
-                    "recipient":{
-                        "id": recipient
-                    },
-                    "message":{
-                        "text": "The task is now done. Thank you!"
+        for contact in contact_group:
+            data = {
+                        "recipient":{
+                            "id": contact
+                        },
+                        "message":{
+                            "text": "The task is now done. Thank you!"
+                        }
                     }
-                }
+            response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+            print(response.json())
         done_task(recipient_id)
+
     elif text == 'DECLINE':
-        data = {
-                    "recipient":{
-                        "id": recipient
-                    },
-                    "message":{
-                        "text": "The task has been declined!"
+        for contact in contact_group:
+            data = {
+                        "recipient":{
+                            "id": contact
+                        },
+                        "message":{
+                            "text": "The task has been declined!"
+                        }
                     }
-                }
+            response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+            print(response.json())
         decline_task(recipient_id)
+
     else:
         data = {
                     "recipient":{
@@ -321,5 +333,5 @@ def task_on_process_request(recipient_id, text):
                         "text": text
                     }
                 }
-    response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
-    print(response.json())
+        response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+        print(response.json())
