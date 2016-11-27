@@ -2,6 +2,7 @@ import django
 
 import decimal
 from .models import User, Task
+from .services import transfer_funds, get_account_info
 
 def format_number(value, format="0.00", rounding="ROUND_HALF_UP"):
     return decimal.Decimal(value).quantize(decimal.Decimal(format), rounding=rounding)
@@ -40,6 +41,8 @@ def update_task_amount(messenger_id, amount):
     task = Task.objects.filter(owner=get_user(messenger_id)).last()
     update_task(task.reference_number, {'amount' : format_number(amount)})
     update_user(messenger_id, {'state' : 'WAITING_FOR_AGENT'})
+    transfer_funds('CUSTOMER', 'APP', amount=format_number(amount))
+
 
 def set_agent(messenger_id, reference_number):
     task = get_task(reference_number)
@@ -51,12 +54,14 @@ def cancel_task(messenger_id):
     task = Task.objects.filter(owner=get_user(messenger_id)).last()
     update_task(task.reference_number, {'status' : 'CANCELLED'})
     update_user(messenger_id, {'state' : 'INITIAL_STATE'})
+    transfer_funds('APP', 'CUSTOMER', amount=float(task.amount))
 
 def done_task(messenger_id):
     task = Task.objects.filter(agent=get_user(messenger_id)).last()
     update_user(messenger_id, {'state' : 'INITIAL_STATE'})
     update_user(task.owner.messenger_id, {'state' : 'INITIAL_STATE'})
     update_task(task.reference_number, {'status' : 'DONE'})
+    transfer_funds('APP', 'AGENT', amount=float(task.amount))
 
 def decline_task(messenger_id):
     task = Task.objects.filter(agent=get_user(messenger_id)).last()
