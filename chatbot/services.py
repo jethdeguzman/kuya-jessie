@@ -38,11 +38,10 @@ def transfer_funds(source_account_type, target_account_type, amount=0.00):
             'target_currency' : 'php',
             'amount' : amount
         }
-        
+        print(data)
         response = requests.post(url, headers=UNIONBANK_HEADERS, json=data)
-        
-    except Exception:
-        pass
+    except Exception as e:
+        print(str(e))
 
     return 
 

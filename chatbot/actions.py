@@ -41,7 +41,8 @@ def update_task_amount(messenger_id, amount):
     task = Task.objects.filter(owner=get_user(messenger_id)).last()
     update_task(task.reference_number, {'amount' : format_number(amount)})
     update_user(messenger_id, {'state' : 'WAITING_FOR_AGENT'})
-    transfer_funds('CUSTOMER', 'APP', amount=format_number(amount))
+    print 'Transferring funds..'
+    transfer_funds('CUSTOMER', 'APP', amount=float(format_number(amount)))
 
 
 def set_agent(messenger_id, reference_number):
