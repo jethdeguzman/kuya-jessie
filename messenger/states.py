@@ -48,7 +48,7 @@ def start_agent(recipient_id, type=None):
                                         {
                                             "type": "postback",
                                             "title": "View Available Tasks",
-                                            "payload": "USER_DEFINED_PAYLOAD"
+                                            "payload": "VIEW_AVAILABLE_TASKS"
                                         },
                                         {
                                             "type": "postback",
@@ -277,9 +277,48 @@ def send_agent_is_available_notification(recipient_id, sender_id):
     response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
     print(response.json())
 
+
+def available_tasks(sender_id):
+    tasks = get_available_tasks()
+    elements = []
+    for task in tasks:
+        user_profile = get_user_profile_preferences(task.owner.messenger_id)
+        element = {
+                    "title": task.description,
+                        "item_url":"",
+                        "image_url": user_profile.get('profile_pic'),
+                        "subtitle": user_profile.get('first_name') + ' ' + user_profile.get('last_name'),
+                        "buttons":[{
+                            "type": "postback",
+                            "title": "Accept for P{}".format(task.amount),
+                            "payload": '{"state":"TASK_ON_PROCESS", "reference_number":"%s"}' % task.reference_number}
+                        ]
+                }
+        elements.append(element)
+
+    data = {
+                "recipient":{
+                    "id":sender_id
+                },
+                "message":{
+                    "attachment":{
+                        "type":"template",
+                        "payload":{
+                            "template_type":"generic",
+                            "elements": elements
+                        }
+                    }
+                }
+            }
+    response = requests.post(url=URL, data=json.dumps(data), headers=HEADERS)
+
+
 def start_agent_request(recipient_id, text):
     if text == 'LOGOUT':
         update_user(recipient_id, data={'type':'CUSTOMER', 'state':'INITIAL_STATE'})
+
+    if text == 'VIEW_AVAILABLE_TASKS':
+        data = available_tasks(recipient_id)
 
     try:
         command = json.loads(text)
